@@ -83,6 +83,7 @@
         border: 1px solid #1d4a5e;
         border-radius: 12px;
         padding: 22px 26px;
+        padding-bottom: calc(22px + env(safe-area-inset-bottom));
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
       }
       .panel h1 {
@@ -282,6 +283,10 @@
           <li><strong>Exit to menu:</strong> from the pause screen, choose <em>Menu</em>.</li>
         </ul>
 
+        <div class="btnrow">
+          <button id="launch" class="btn">Launch trainer (Enter)</button>
+        </div>
+
         <h2>Controls (PoC — per-side)</h2>
         <p>
           Each side drives <em>both rowers' same-side oars together</em>. Port and
@@ -325,10 +330,6 @@
           <li>More courses (busy river, slalom) — the level framework is already data-driven.</li>
           <li>Camera toggle (boat-relative view), sound / haptics, mobile touch controls.</li>
         </ul>
-
-        <div class="btnrow">
-          <button id="launch" class="btn">Launch trainer (Enter)</button>
-        </div>
       </div>
     </div>
 
