@@ -40,6 +40,14 @@ export const BOAT = {
    */
   oarOffset: 1.9,
   /**
+   * VISUAL rigger-pin spread from centreline (m) — ONLY used by the renderer to
+   * pin the oars to the hull edge. This is NOT the physics lever arm (`oarOffset`,
+   * which is the blade reach ~1.9 m). The real rigger pin sits ~0.5 m off the
+   * centreline; using oarOffset for the visual would fling the oars off the hull
+   * and onto the target-indicator ring. Keep this small and hull-relative.
+   */
+  riggerSpread: 0.5,
+  /**
    * Oar inboard length (m) — handle-to-pivot. Real 2x ≈ 0.88 m. Reference for
    * gearing; the force model applies at the pivot so this is cosmetic/educational.
    */

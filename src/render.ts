@@ -68,7 +68,7 @@ export class Renderer {
     for (const g of level.gates) this.drawGate(g, cam, vw, vh);
 
     // boat
-    this.drawBoat(boat, cam, vw, vh, debug, oars);
+    this.drawBoat(boat, cam, vw, vh, oars);
 
     if (debug) this.drawDebug(boat, cam, vw, vh);
 
@@ -153,7 +153,6 @@ export class Renderer {
     cam: Camera,
     vw: number,
     vh: number,
-    debug: boolean,
     oars: OarCommands
   ) {
     const ctx = this.ctx;
@@ -191,7 +190,9 @@ export class Renderer {
     //   hold  (engaged+hold) -> SQUARED, blade perpendicular to hull, static,
     //                           bright (a real "checking" pose in the water)
     //   row   (engaged drive)-> sweeps about the rigger pivot with stroke phase
-    if (debug) {
+    // Oars are pinned to the hull edge via the VISUAL riggerSpread (NOT the
+    // physics oarOffset lever arm) and drawn in every frame, not just debug.
+    {
       ctx.lineWidth = 2;
       const stations = [2.5, -2.5];
       const oarLen = BOAT.oarOutboard * cam.ppm; // real oar length (m) scaled to screen
@@ -200,7 +201,7 @@ export class Renderer {
         const rower = i < 2 ? 0 : 1;
         const side = i % 2 === 0 ? -1 : 1; // port = -1, starboard = +1
         const px = stations[rower] * cam.ppm;
-        const py = side * BOAT.oarOffset * cam.ppm; // pivot on the rigger
+        const py = side * BOAT.riggerSpread * cam.ppm; // pivot pinned to the hull edge
 
         const oar = oars[i];
         if (!oar.engaged || oar.power <= 0) {
@@ -230,7 +231,7 @@ export class Renderer {
         const by = py + side * oarLen * Math.cos(ang);
         ctx.strokeStyle = "rgba(255,255,255,0.9)";
         ctx.beginPath();
-        ctx.moveTo(px, py); // pivot (rigger) — fixed
+        ctx.moveTo(px, py); // pivot (rigger) — fixed on the hull edge
         ctx.lineTo(bx, by); // blade — sweeps fore/aft about pivot
         ctx.stroke();
       }
