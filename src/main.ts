@@ -34,6 +34,7 @@ const launchBtn = document.getElementById("launch") as HTMLButtonElement;
 const resumeBtn = document.getElementById("resume") as HTMLButtonElement;
 const restartBtn = document.getElementById("restart") as HTMLButtonElement;
 const menuBtn = document.getElementById("menuBtn") as HTMLButtonElement;
+const touchpad = document.getElementById("touchpad") as HTMLDivElement;
 
 const level = defaultLevel();
 let boat: BoatState = makeBoat(level);
@@ -69,10 +70,18 @@ function reset() {
   }
 }
 
+/** Toggle the touch pad visibility (only meaningful on touch devices). */
+function setTouchVisible(on: boolean) {
+  if (touchpad.classList.contains("on")) {
+    touchpad.style.display = on ? "block" : "none";
+  }
+}
+
 /** Begin play from the menu (or after a restart). */
 function launch() {
   menuEl.hidden = true;
   pauseEl.hidden = true;
+  setTouchVisible(true);
   state = "playing";
   last = performance.now();
   acc = 0;
@@ -82,6 +91,7 @@ function launch() {
 function pause() {
   if (state !== "playing") return;
   state = "paused";
+  setTouchVisible(false);
   pauseEl.hidden = false;
 }
 
@@ -89,6 +99,7 @@ function pause() {
 function resume() {
   if (state !== "paused") return;
   state = "playing";
+  setTouchVisible(true);
   pauseEl.hidden = true;
   last = performance.now();
   acc = 0;
@@ -97,6 +108,7 @@ function resume() {
 /** Return to the landing menu. */
 function toMenu() {
   reset();
+  setTouchVisible(false);
   pauseEl.hidden = true;
   menuEl.hidden = false;
   state = "menu";
@@ -120,6 +132,42 @@ restartBtn.addEventListener("click", () => {
   resume();
 });
 menuBtn.addEventListener("click", toMenu);
+
+// --- touch controls ---------------------------------------------------------
+// On coarse-pointer (touch) devices there's no keyboard, so show an on-screen
+// pad. Buttons feed the SAME key set the keyboard uses ("q/a/z" port,
+// "w/s/x" starboard), so the existing per-side physics mapping is untouched.
+// We use the InputManager's key set directly so keyboard + touch compose.
+function isTouchDevice(): boolean {
+  return (
+    window.matchMedia?.("(pointer: coarse)").matches ||
+    "ontouchstart" in window ||
+    navigator.maxTouchPoints > 0
+  );
+}
+
+if (isTouchDevice()) {
+  touchpad.classList.add("on");
+  touchpad.querySelectorAll<HTMLButtonElement>(".touch-btn").forEach((btn) => {
+    const key = btn.dataset.key!.toLowerCase();
+    const press = (e: Event) => {
+      e.preventDefault();
+      input.pressKey(key);
+      btn.classList.add("active");
+    };
+    const release = (e: Event) => {
+      e.preventDefault();
+      input.releaseKey(key);
+      btn.classList.remove("active");
+    };
+    btn.addEventListener("pointerdown", press);
+    btn.addEventListener("pointerup", release);
+    btn.addEventListener("pointercancel", release);
+    btn.addEventListener("pointerleave", release);
+    // Guard against context menu / long-press selection on the buttons.
+    btn.addEventListener("contextmenu", (e) => e.preventDefault());
+  });
+}
 
 let last = performance.now();
 let acc = 0;

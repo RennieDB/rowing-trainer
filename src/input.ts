@@ -49,6 +49,21 @@ export class InputManager {
     });
   }
 
+  /**
+   * Programmatic key press (used by touch buttons). The key is normalised the
+   * same way as a physical keydown so the scheme mapping stays consistent.
+   */
+  pressKey(raw: string) {
+    const k = raw.length === 1 ? raw.toLowerCase() : raw;
+    this.keys.add(k);
+  }
+
+  /** Programmatic key release (used by touch buttons). */
+  releaseKey(raw: string) {
+    const k = raw.length === 1 ? raw.toLowerCase() : raw;
+    this.keys.delete(k);
+  }
+
   private onKey(e: KeyboardEvent, down: boolean) {
     // Normalise to lower-case unmodified key names we use.
     const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
