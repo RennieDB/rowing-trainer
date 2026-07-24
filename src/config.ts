@@ -30,10 +30,15 @@ export const BOAT = {
    */
   inertia: (120 * 9.5 * 9.5) / 12,
   /**
-   * Oar outboard pivot offset from centreline (m). This is the lever arm that
-   * turns oar force into yaw torque — the heart of why rowing turns a boat.
+   * Oar offset from centreline (m) — the LEVER ARM that turns oar force into
+   * yaw torque. This is the distance from the hull centreline to the BLADE in
+   * the water (~oarOutboard ≈ 1.9 m for a 2x), NOT the rigger pivot (≈0.35 m).
+   * Using the rigger offset makes the boat nearly impossible to spin (real
+   * doubles turn ~180° in 6-7 strokes of row-on/back-down); the blade lever
+   * gives realistic turning. Same constant drives hold-drag torque, so a
+   * squared blade also checks/yaws harder (correct).
    */
-  oarOffset: 0.35,
+  oarOffset: 1.9,
   /**
    * Oar inboard length (m) — handle-to-pivot. Real 2x ≈ 0.88 m. Reference for
    * gearing; the force model applies at the pivot so this is cosmetic/educational.
@@ -85,10 +90,11 @@ export const BOAT = {
    * Linear angular drag coefficient — THE primary yaw resistance, applied as a
    * torque and divided by INERTIA (not mass). A long thin hull levers hard
    * against the water, so yaw decays fast once rowing stops. Time constant
-   * τ ≈ inertia / dragAngularLin ≈ 902.5/1800 ≈ 0.5 s (re-tuned when length
-   * dropped 10→9.5 m so the yaw feel is unchanged).
+   * τ ≈ inertia / dragAngularLin ≈ 902.5/1300 ≈ 0.7 s. Tuned (with oarOffset
+   * moved out to the blade ~1.9 m) so the boat spins ~180° in 6-7 strokes of
+   * row-on/back-down yet still stops yawing within ~3 s once oars are released.
    */
-  dragAngularLin: 1800,
+  dragAngularLin: 1300,
   /**
    * "Hold" resistance: a squared blade held in the water brakes the boat's
    * motion at that oar's pivot (quadratic point drag, with torque). Models a
