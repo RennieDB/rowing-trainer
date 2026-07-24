@@ -5,8 +5,11 @@
  * touching physics or render code. Units: metres, seconds, radians.
  *
  * The boat is modelled as a rigid body. Length ~9.5 m (a coxless double / 2x).
- * World is north-up: +x = east, +y = south (canvas convention), heading 0 = bow
- * pointing east. Render converts to screen; physics stays in world space.
+ * World is north-up: +x = east, +y = south (canvas convention). Heading theta
+ * is measured the same way (0 = bow pointing east, +π/2 = bow south,
+ * -π/2 (≈ -1.5708) = bow NORTH / up). Render rotates by theta; physics stays in
+ * world space. The PoC level starts at heading -π/2 (facing north) so port
+ * oars render screen-left and starboard screen-right, matching the controls.
  */
 
 export const SIM = {
