@@ -170,7 +170,7 @@ export class Renderer {
     ctx.ellipse(0, 0, L / 2, W / 2, 0, 0, Math.PI * 2);
     ctx.fill();
     // bow indicator: a clear arrowhead at +x (bow) so orientation is obvious.
-    ctx.fillStyle = "#1a1a1a";
+    ctx.fillStyle = "#ffffff";
     ctx.beginPath();
     ctx.moveTo(L / 2 + 4, 0);
     ctx.lineTo(L / 2 - 10, -7);
