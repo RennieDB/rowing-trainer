@@ -1,0 +1,13 @@
+{
+  "id": "open-water-poc",
+  "name": "Open Water — Basic Control",
+  "bounds": { "w": 400, "h": 300 },
+  "start": { "x": 200, "y": 150, "heading": 0 },
+  "flow": { "vx": 0, "vy": 0 },
+  "wind": { "speed": 0, "dir": 0 },
+  "gates": [
+    { "x": 270, "y": 150, "width": 14, "angle": 0, "label": "Gate 1" },
+    { "x": 330, "y": 120, "width": 14, "angle": -0.35, "label": "Gate 2" }
+  ],
+  "obstacles": []
+}

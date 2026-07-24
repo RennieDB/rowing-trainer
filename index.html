@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rowing Manoeuvring Trainer</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #0b1f2a;
+        color: #cfe8f3;
+        font-family: system-ui, sans-serif;
+        overflow: hidden;
+      }
+      #game {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+      #hud {
+        position: fixed;
+        top: 8px;
+        left: 8px;
+        font-size: 13px;
+        line-height: 1.4;
+        background: rgba(0, 0, 0, 0.35);
+        padding: 6px 10px;
+        border-radius: 6px;
+        pointer-events: none;
+        white-space: pre;
+      }
+      #reset {
+        position: fixed;
+        top: 8px;
+        right: 8px;
+        font-size: 13px;
+        font-family: system-ui, sans-serif;
+        color: #0b1f2a;
+        background: #5bc0be;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      #reset:hover {
+        background: #7ad4d2;
+      }
+
+      /* Overlays (menu + pause) */
+      .overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(6, 18, 26, 0.92);
+        z-index: 10;
+        padding: 16px;
+      }
+      .overlay[hidden] {
+        display: none;
+      }
+      .panel {
+        width: min(680px, 94vw);
+        max-height: 92vh;
+        overflow-y: auto;
+        background: #0e2a38;
+        border: 1px solid #1d4a5e;
+        border-radius: 12px;
+        padding: 22px 26px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      }
+      .panel h1 {
+        margin: 0 0 2px;
+        font-size: 22px;
+        color: #7ad4d2;
+      }
+      .panel .sub {
+        margin: 0 0 16px;
+        font-size: 13px;
+        color: #9fb9c6;
+      }
+      .panel h2 {
+        font-size: 14px;
+        margin: 18px 0 6px;
+        color: #5bc0be;
+        border-bottom: 1px solid #1d4a5e;
+        padding-bottom: 4px;
+      }
+      .panel p,
+      .panel li {
+        font-size: 13px;
+        line-height: 1.5;
+        color: #d6e8f1;
+      }
+      .panel ul {
+        margin: 4px 0;
+        padding-left: 18px;
+      }
+      .controls {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin: 4px 0;
+      }
+      .controls th,
+      .controls td {
+        text-align: left;
+        padding: 5px 8px;
+        border-bottom: 1px solid #1d4a5e;
+      }
+      .controls th {
+        color: #9fb9c6;
+        font-weight: 600;
+      }
+      kbd {
+        background: #143642;
+        border: 1px solid #1d4a5e;
+        border-radius: 4px;
+        padding: 1px 6px;
+        font-family: ui-monospace, monospace;
+        font-size: 12px;
+        color: #cfe8f3;
+      }
+      .btnrow {
+        display: flex;
+        gap: 10px;
+        margin-top: 18px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        font-size: 14px;
+        font-family: system-ui, sans-serif;
+        font-weight: 600;
+        color: #0b1f2a;
+        background: #5bc0be;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 18px;
+        cursor: pointer;
+      }
+      .btn:hover {
+        background: #7ad4d2;
+      }
+      .btn.ghost {
+        background: transparent;
+        color: #cfe8f3;
+        border: 1px solid #1d4a5e;
+      }
+      .btn.ghost:hover {
+        background: #143642;
+      }
+      .note {
+        font-size: 12px;
+        color: #9fb9c6;
+        margin-top: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+    <div id="hud"></div>
+    <button id="reset">Reset (R)</button>
+
+    <!-- Landing / menu overlay -->
+    <div id="menu" class="overlay">
+      <div class="panel">
+        <h1>Rennie — Rowing Manoeuvring Trainer</h1>
+        <p class="sub">Learn to handle a double (2x) with confidence.</p>
+
+        <h2>Start / Stop</h2>
+        <ul>
+          <li><strong>Start:</strong> click <em>Launch trainer</em> or press <kbd>Enter</kbd>.</li>
+          <li><strong>Pause:</strong> <kbd>Esc</kbd> or <kbd>P</kbd> — freezes the sim.</li>
+          <li><strong>Reset level:</strong> <kbd>R</kbd> — boat back to start, gates cleared.</li>
+          <li><strong>Exit to menu:</strong> from the pause screen, choose <em>Menu</em>.</li>
+        </ul>
+
+        <h2>Controls (PoC — per-side)</h2>
+        <p>
+          Each side drives <em>both rowers' same-side oars together</em>. Port and
+          starboard are fully independent.
+        </p>
+        <table class="controls">
+          <thead>
+            <tr><th>Side</th><th>Row on</th><th>Hold</th><th>Back down</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Port (left)</td><td><kbd>Q</kbd></td><td><kbd>A</kbd></td><td><kbd>Z</kbd></td></tr>
+            <tr><td>Starboard (right)</td><td><kbd>W</kbd></td><td><kbd>S</kbd></td><td><kbd>X</kbd></td></tr>
+          </tbody>
+        </table>
+        <p class="note">
+          <strong>Row on</strong> drives forward · <strong>Hold</strong> squares the
+          blade to check/brake and yaw the boat · <strong>Back down</strong> reverses.
+          Both sides together = straight; one side only = turns. Gamepad mapping
+          (stick = side effort) is planned.
+        </p>
+
+        <h2>Features in this build</h2>
+        <ul>
+          <li>Realistic 2x hull physics — the hull resists sideways skid and stops yawing fast when you stop rowing (not "on ice").</li>
+          <li>Per-side 3-state oar control (row / hold / back-down).</li>
+          <li>Top-down, north-up camera that follows the boat and scrolls.</li>
+          <li>Open-water scenario with sequential gates (1 → 2 → …).</li>
+          <li>Off-screen target indicator — a chevron orbiting the boat points at the next gate.</li>
+          <li>Reset button + to-scale hull and oars.</li>
+          <li>Deterministic fixed-timestep simulation (matters later for fair scoring).</li>
+        </ul>
+
+        <h2>Roadmap (not yet built)</h2>
+        <ul>
+          <li><strong>Per-oar independent control</strong> — the actual learning goal (each rower's each oar).</li>
+          <li>River flow / current and wind / gusts.</li>
+          <li>Other boats / river traffic with collision.</li>
+          <li>Landing-stage docking scenarios (away from / onto the bank).</li>
+          <li>Scoring + leaderboard with server-side replay validation.</li>
+          <li>More courses (busy river, slalom) — the level framework is already data-driven.</li>
+          <li>Camera toggle (boat-relative view), sound / haptics, mobile touch controls.</li>
+        </ul>
+
+        <div class="btnrow">
+          <button id="launch" class="btn">Launch trainer (Enter)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pause overlay -->
+    <div id="pause" class="overlay" hidden>
+      <div class="panel" style="width: min(420px, 92vw); text-align: center;">
+        <h1>Paused</h1>
+        <p class="sub">Sim frozen.</p>
+        <div class="btnrow" style="justify-content: center;">
+          <button id="resume" class="btn">Resume (Esc)</button>
+          <button id="restart" class="btn ghost">Restart</button>
+          <button id="menuBtn" class="btn ghost">Menu</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

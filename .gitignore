@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+.vite/
+# secret / local config guards (never commit these)
+.env
+.env.*
+*.local
+secrets/
