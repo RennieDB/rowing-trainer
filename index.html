@@ -31,10 +31,15 @@
         pointer-events: none;
         white-space: pre;
       }
-      #reset {
+      .topbtns {
         position: fixed;
         top: 8px;
         right: 8px;
+        display: flex;
+        gap: 6px;
+        z-index: 8;
+      }
+      button.topbtn {
         font-size: 13px;
         font-family: system-ui, sans-serif;
         color: #0b1f2a;
@@ -44,8 +49,16 @@
         padding: 8px 12px;
         cursor: pointer;
       }
-      #reset:hover {
+      button.topbtn:hover {
         background: #7ad4d2;
+      }
+      button.topbtn.ghost {
+        background: transparent;
+        color: #cfe8f3;
+        border: 1px solid #1d4a5e;
+      }
+      button.topbtn.ghost:hover {
+        background: #143642;
       }
 
       /* Overlays (menu + pause) */
@@ -233,7 +246,11 @@
   <body>
     <canvas id="game"></canvas>
     <div id="hud"></div>
-    <button id="reset">Reset (R)</button>
+    <div class="topbtns">
+      <button id="reset" class="topbtn">Reset (R)</button>
+      <button id="pauseToggle" class="topbtn">Pause (P)</button>
+      <button id="toMenu" class="topbtn ghost">Menu</button>
+    </div>
 
     <!-- On-screen touch controls (touch devices only) -->
     <div id="touchpad">

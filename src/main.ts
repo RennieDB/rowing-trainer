@@ -28,6 +28,8 @@ import type { BoatState, InputState } from "./types";
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const hud = document.getElementById("hud") as HTMLDivElement;
 const resetBtn = document.getElementById("reset") as HTMLButtonElement | null;
+const pauseToggleBtn = document.getElementById("pauseToggle") as HTMLButtonElement | null;
+const toMenuBtn = document.getElementById("toMenu") as HTMLButtonElement | null;
 const menuEl = document.getElementById("menu") as HTMLDivElement;
 const pauseEl = document.getElementById("pause") as HTMLDivElement;
 const launchBtn = document.getElementById("launch") as HTMLButtonElement;
@@ -93,6 +95,7 @@ function pause() {
   state = "paused";
   setTouchVisible(false);
   pauseEl.hidden = false;
+  syncPauseBtn();
 }
 
 /** Resume from pause. */
@@ -103,6 +106,7 @@ function resume() {
   pauseEl.hidden = true;
   last = performance.now();
   acc = 0;
+  syncPauseBtn();
 }
 
 /** Return to the landing menu. */
@@ -112,6 +116,20 @@ function toMenu() {
   pauseEl.hidden = true;
   menuEl.hidden = false;
   state = "menu";
+  syncPauseBtn();
+}
+
+/** Keep the on-screen Pause button label in sync with the current state. */
+function syncPauseBtn() {
+  if (pauseToggleBtn) {
+    pauseToggleBtn.textContent = state === "paused" ? "Resume (P)" : "Pause (P)";
+  }
+}
+
+/** Pause the sim (from playing) or resume (from paused). */
+function togglePause() {
+  if (state === "playing") pause();
+  else if (state === "paused") resume();
 }
 
 // --- input wiring -----------------------------------------------------------
@@ -120,11 +138,12 @@ window.addEventListener("keydown", (e) => {
   const k = e.key.toLowerCase();
   if (k === "r") reset();
   else if (k === "escape" || k === "p") {
-    if (state === "playing") pause();
-    else if (state === "paused") resume();
+    togglePause();
   } else if (e.key === "Enter" && state === "menu") launch();
 });
 resetBtn?.addEventListener("click", reset);
+pauseToggleBtn?.addEventListener("click", togglePause);
+toMenuBtn?.addEventListener("click", toMenu);
 launchBtn.addEventListener("click", launch);
 resumeBtn.addEventListener("click", resume);
 restartBtn.addEventListener("click", () => {

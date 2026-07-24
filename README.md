@@ -35,14 +35,27 @@ fully independent, so you can, for example, hold port while rowing starboard.
 - `Esc` / `P` — pause (overlay with Resume / Restart / Menu).
 - `Enter` or **Launch trainer** — start from the landing screen.
 
+Top-right on-screen buttons (always available, work on touch too):
+**Reset (R)** · **Pause (P)** (toggles to Resume when paused) · **Menu**
+(return to the landing screen, resetting progress).
+
 A landing/menu screen explains the controls and start/stop before play.
-Gamepad support is planned (left/right stick = port/starboard effort), not yet
-wired.
+On a touchscreen, on-screen Row/Hold/Back buttons appear for each side
+(see below). Gamepad support is planned (left/right stick = port/starboard
+effort), not yet wired.
 
 To switch schemes, change `CONTROL.scheme` in `src/config.ts`:
 `"simple"` (legacy single-stick), `"sideBySide"` (current), or `"perOar"`
 (full independent 4-oar control — stubbed, the learning goal). Physics is
 identical regardless of scheme.
+
+## Touch controls (mobile / tablet)
+
+On a touch device (`pointer: coarse`), an on-screen pad appears at the bottom:
+**Port** on the left (Row / Hold / Back), **Starboard** on the right. These feed
+the same key set the keyboard uses (`Q A Z` / `W S X`), so the per-side physics
+mapping is untouched. The pad hides behind the landing/pause overlays and shows
+only during play. The top-right Reset / Pause / Menu buttons work on touch too.
 
 ## How it works
 
