@@ -59,10 +59,12 @@ export class Camera {
     let rx = wx - this.cx;
     let ry = wy - this.cy;
 
-    // If in boat-relative mode, rotate by -boatTheta so the boat always points up
+    // If in boat-relative mode, rotate by π/2 - boatTheta so the boat
+    // always points DOWN on screen (bow to +y).
     if (this.mode === CamMode.BOAT_RELATIVE) {
-      const cos = Math.cos(-boatTheta);
-      const sin = Math.sin(-boatTheta);
+      const angle = Math.PI / 2 - boatTheta;
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
       const rotatedX = rx * cos - ry * sin;
       const rotatedY = rx * sin + ry * cos;
       rx = rotatedX;

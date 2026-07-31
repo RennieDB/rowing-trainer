@@ -139,7 +139,7 @@ export class Renderer {
     const half = (g.width / 2) * cam.ppm;
     // In boat-relative mode, rotate the gate angle so its orientation
     // matches the rotated world view.
-    const screenAngle = cam.mode === CamMode.BOAT_RELATIVE ? g.angle - boatTheta : g.angle;
+    const screenAngle = cam.mode === CamMode.BOAT_RELATIVE ? g.angle - boatTheta + Math.PI / 2 : g.angle;
     const dx = Math.cos(screenAngle + Math.PI / 2);
     const dy = Math.sin(screenAngle + Math.PI / 2);
     ctx.strokeStyle = RENDER.gate;
@@ -171,9 +171,10 @@ export class Renderer {
     ctx.translate(sx, sy);
 
     // In north-up mode: rotate the boat sprite to show its heading.
-    // In boat-relative mode: the boat always points up on screen (the world
-    // rotates around it), so no sprite rotation.
-    if (cam.mode !== CamMode.BOAT_RELATIVE) {
+    // In boat-relative mode: bow points down on screen (bow to +y).
+    if (cam.mode === CamMode.BOAT_RELATIVE) {
+      ctx.rotate(Math.PI / 2); // +x (bow) → +y (down)
+    } else {
       ctx.rotate(boat.theta);
     }
 
@@ -307,8 +308,9 @@ export class Renderer {
     let headDy = Math.sin(boat.theta) * 30;
 
     if (cam.mode === CamMode.BOAT_RELATIVE) {
-      const cos = Math.cos(-boat.theta);
-      const sin = Math.sin(-boat.theta);
+      const angle = Math.PI / 2 - boat.theta;
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
       const rvx = velDx * cos - velDy * sin;
       const rvy = velDx * sin + velDy * cos;
       velDx = rvx;

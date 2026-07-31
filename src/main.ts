@@ -185,14 +185,24 @@ if (isTouchDevice()) {
   touchpad.classList.add("on");
   touchpad.querySelectorAll<HTMLButtonElement>(".touch-btn").forEach((btn) => {
     const key = btn.dataset.key!.toLowerCase();
+
+    /** Swap port↔stbd keys when in boat-relative mode so screen-left
+     * controls starboard oars and screen-right controls port oars. */
+    function effectiveKey(k: string): string {
+      if (camMode !== CamMode.BOAT_RELATIVE) return k;
+      // Port keys → starboard keys and vice versa
+      const swap: Record<string, string> = { q: "w", w: "q", a: "s", s: "a", z: "x", x: "z" };
+      return swap[k] ?? k;
+    }
+
     const press = (e: Event) => {
       e.preventDefault();
-      input.pressKey(key);
+      input.pressKey(effectiveKey(key));
       btn.classList.add("active");
     };
     const release = (e: Event) => {
       e.preventDefault();
-      input.releaseKey(key);
+      input.releaseKey(effectiveKey(key));
       btn.classList.remove("active");
     };
     btn.addEventListener("pointerdown", press);
