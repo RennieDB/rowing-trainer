@@ -150,8 +150,8 @@ export function stepBoat(
     // local frame
     const lvx = rvx * cosT + rvy * sinT;
     const lvy = -rvx * sinT + rvy * cosT;
-    const dLocalX = -BOAT.holdDrag * lvx * Math.abs(lvx);
-    const dLocalY = -BOAT.holdDrag * lvy * Math.abs(lvy);
+    const dLocalX = -BOAT.holdDrag * lvx * Math.abs(lvx) - BOAT.holdDragLin * lvx;
+    const dLocalY = -BOAT.holdDrag * lvy * Math.abs(lvy) - BOAT.holdDragLin * lvy;
     const dwx = dLocalX * cosT - dLocalY * sinT;
     const dwy = dLocalX * sinT + dLocalY * cosT;
     fx += dwx;

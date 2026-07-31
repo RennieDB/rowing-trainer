@@ -111,7 +111,13 @@ export const BOAT = {
    * motion at that oar's pivot (quadratic point drag, with torque). Models a
    * real "checking" stroke. Larger = stronger check.
    */
-  holdDrag: 30,
+  holdDrag: 200,
+  /**
+   * Linear hold drag — kills the low-speed tail that pure quadratic drag
+   * produces (F = k·v² → 0 as v→0). A squared blade in water still has
+   * viscous resistance at very low speeds; this term handles it.
+   */
+  holdDragLin: 80,
 } as const;
 
 export const STROKE = {

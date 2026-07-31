@@ -270,10 +270,12 @@ function updateHud() {
   const o = lastInput.oars;
   const tag = (i: number) =>
     o[i].hold ? "HOLD" : o[i].engaged ? (o[i].reverse ? "BACK" : "ROW") : "·";
+  const deg = ((boat.theta * 180) / Math.PI) % 360;
+  const heading = deg < 0 ? deg + 360 : deg;
   hud.textContent =
     `Level: ${level.name}\n` +
     `Speed: ${speed.toFixed(2)} m/s\n` +
-    `Heading: ${((boat.theta * 180) / Math.PI).toFixed(0)}°\n` +
+    `Heading: ${heading.toFixed(0)}°\n` +
     `Gates: ${scenario.passed}/${level.gates.length}` +
     (scenario.complete ? "  COMPLETE" : "") +
     `\nOars  P:${tag(0)} S:${tag(1)}  (row/hold/back)\n` +
