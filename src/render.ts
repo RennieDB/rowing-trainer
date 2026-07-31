@@ -106,6 +106,12 @@ export class Renderer {
   }
 
   private drawShore(level: Level, cam: Camera, vw: number, vh: number, boatTheta: number) {
+    // In boat-relative mode, the shore fills are drawn at rotated world
+    // positions as axis-aligned screen rectangles. These are 10000m+ wide
+    // and sweep across the viewport at certain heading angles, hiding the
+    // grid. Since the shore is already invisible in the normal viewport
+    // (it sits outside the level bounds, far from the boat), just skip it.
+    if (cam.mode === CamMode.BOAT_RELATIVE) return;
     const ctx = this.ctx;
     ctx.fillStyle = RENDER.shore;
     const b = level.bounds;
