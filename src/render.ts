@@ -12,6 +12,7 @@
 import { RENDER, BOAT } from "./config";
 import type { BoatState, Level, OarCommands } from "./types";
 import type { Camera } from "./camera";
+import { CamMode } from "./camera";
 
 export class Renderer {
   private ctx: CanvasRenderingContext2D;
@@ -54,30 +55,39 @@ export class Renderer {
     const vw = this.viewW;
     const vh = this.viewH;
 
-    // water
+    // Apply camera transformation if in boat-relative mode
+    if (cam.mode === CamMode.BOAT_RELATIVE) {
+      ctx.save();
+      // The rotation is handled in the transformed world functions
+    }
+
+    // Water background
     ctx.fillStyle = RENDER.water;
     ctx.fillRect(0, 0, vw, vh);
 
-    // world grid (every 10 m) within view
-    this.drawGrid(cam, vw, vh);
+    // Draw world grid and gates (they are transformed)
+    this.drawGridTransformed(cam, vw, vh, cam.mode === CamMode.BOAT_RELATIVE, boat.theta);
+    this.drawShoreTransformed(level, cam, vw, vh, cam.mode === CamMode.BOAT_RELATIVE, boat.theta);
+    for (const g of level.gates) {
+      this.drawGateTransformed(g, cam, vw, vh, cam.mode === CamMode.BOAT_RELATIVE, boat.theta);
+    }
 
-    // shore = area outside bounds
-    this.drawShore(level, cam, vw, vh);
-
-    // gates
-    for (const g of level.gates) this.drawGate(g, cam, vw, vh);
-
-    // boat
+    // Draw boat normally (rotation handled by canvas already)
     this.drawBoat(boat, cam, vw, vh, oars);
 
+    // Debug vectors
     if (debug) this.drawDebug(boat, cam, vw, vh);
 
-    // off-screen (or on-screen) target indicator — an opaque marker on a ring
-    // around the boat pointing at the next gate.
+    // Draw target indicator
     if (target) this.drawTargetIndicator(boat, cam, vw, vh, target);
+
+    // Restore canvas state
+    if (cam.mode === CamMode.BOAT_RELATIVE) {
+      ctx.restore();
+    }
   }
 
-  private drawGrid(cam: Camera, vw: number, vh: number) {
+  private drawGridTransformed(cam: Camera, vw: number, vh: number, transformed: boolean, boatTheta: number) {
     const ctx = this.ctx;
     const step = 10;
     ctx.strokeStyle = "rgba(255,255,255,0.06)";
@@ -90,49 +100,49 @@ export class Renderer {
     const startY = Math.floor(top / step) * step;
     ctx.beginPath();
     for (let x = startX; x <= right; x += step) {
-      const [sx] = cam.worldToScreen(x, top, vw, vh);
-      const [, sy0] = cam.worldToScreen(x, top, vw, vh);
-      const [, sy1] = cam.worldToScreen(x, bottom, vw, vh);
+      const [sx] = this.transformedWorldToScreen(cam, x, top, vw, vh, transformed, boatTheta);
+      const [, sy0] = this.transformedWorldToScreen(cam, x, top, vw, vh, transformed, boatTheta);
+      const [, sy1] = this.transformedWorldToScreen(cam, x, bottom, vw, vh, transformed, boatTheta);
       ctx.moveTo(sx, sy0);
       ctx.lineTo(sx, sy1);
     }
     for (let y = startY; y <= bottom; y += step) {
-      const [, sy] = cam.worldToScreen(left, y, vw, vh);
-      const [sx0] = cam.worldToScreen(left, y, vw, vh);
-      const [sx1] = cam.worldToScreen(right, y, vw, vh);
+      const [, sy] = this.transformedWorldToScreen(cam, left, y, vw, vh, transformed, boatTheta);
+      const [sx0] = this.transformedWorldToScreen(cam, left, y, vw, vh, transformed, boatTheta);
+      const [sx1] = this.transformedWorldToScreen(cam, right, y, vw, vh, transformed, boatTheta);
       ctx.moveTo(sx0, sy);
       ctx.lineTo(sx1, sy);
     }
     ctx.stroke();
   }
 
-  private drawShore(level: Level, cam: Camera, vw: number, vh: number) {
+  private drawShoreTransformed(level: Level, cam: Camera, vw: number, vh: number, transformed: boolean, boatTheta: number) {
     const ctx = this.ctx;
     ctx.fillStyle = RENDER.shore;
-    // Four rectangles around the bounds, clipped to view.
     const b = level.bounds;
     const corners = [
-      [-10000, -10000, 10000 + b.w, 10000], // top
-      [-10000, b.h, 10000 + b.w, 10000], // bottom
-      [-10000, 0, 10000, b.h], // left
-      [b.w, 0, 10000, b.h], // right
+      [-10000, -10000, 10000 + b.w, 10000],
+      [-10000, b.h, 10000 + b.w, 10000],
+      [-10000, 0, 10000, b.h],
+      [b.w, 0, 10000, b.h],
     ];
     for (const [x, y, w, h] of corners) {
-      const [sx, sy] = cam.worldToScreen(x, y, vw, vh);
+      const [sx, sy] = this.transformedWorldToScreen(cam, x, y, vw, vh, transformed, boatTheta);
       ctx.fillRect(sx, sy, w * cam.ppm, h * cam.ppm);
     }
   }
 
-  private drawGate(
+  private drawGateTransformed(
     g: { x: number; y: number; width: number; angle: number; label?: string },
     cam: Camera,
     vw: number,
-    vh: number
+    vh: number,
+    transformed: boolean,
+    boatTheta: number
   ) {
     const ctx = this.ctx;
-    const [sx, sy] = cam.worldToScreen(g.x, g.y, vw, vh);
+    const [sx, sy] = this.transformedWorldToScreen(cam, g.x, g.y, vw, vh, transformed, boatTheta);
     const half = (g.width / 2) * cam.ppm;
-    // gate line is perpendicular to boat-pass direction; angle rotates it.
     const dx = Math.cos(g.angle + Math.PI / 2);
     const dy = Math.sin(g.angle + Math.PI / 2);
     ctx.strokeStyle = RENDER.gate;
@@ -146,6 +156,33 @@ export class Renderer {
       ctx.font = "12px system-ui";
       ctx.fillText(g.label, sx + 6, sy - 6);
     }
+  }
+
+  private transformedWorldToScreen(
+    cam: Camera,
+    wx: number,
+    wy: number,
+    vw: number,
+    vh: number,
+    transformed: boolean,
+    boatTheta: number
+  ): [number, number] {
+    let rx = wx - cam.cx;
+    let ry = wy - cam.cy;
+
+    if (transformed && cam.mode === CamMode.BOAT_RELATIVE) {
+      // Apply rotation based on boat heading
+      const cos = Math.cos(-boatTheta);
+      const sin = Math.sin(-boatTheta);
+      const rotatedX = rx * cos - ry * sin;
+      const rotatedY = rx * sin + ry * cos;
+      rx = rotatedX;
+      ry = rotatedY;
+    }
+
+    const sx = vw / 2 + rx * cam.ppm;
+    const sy = vh / 2 + ry * cam.ppm;
+    return [sx, sy];
   }
 
   private drawBoat(

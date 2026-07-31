@@ -19,7 +19,7 @@
 import { SIM, RENDER } from "./config";
 import { stepBoat, makeBoat } from "./physics";
 import { InputManager } from "./input";
-import { Camera } from "./camera";
+import { Camera, CamMode } from "./camera";
 import { Renderer } from "./render";
 import { defaultLevel } from "./levels";
 import { initScenario, updateScenario, type ScenarioState } from "./scenario";
@@ -37,6 +37,10 @@ const resumeBtn = document.getElementById("resume") as HTMLButtonElement;
 const restartBtn = document.getElementById("restart") as HTMLButtonElement;
 const menuBtn = document.getElementById("menuBtn") as HTMLButtonElement;
 const touchpad = document.getElementById("touchpad") as HTMLDivElement;
+const viewToggleBtn = document.getElementById("viewToggleBtn") as HTMLButtonElement | null;
+
+// Track current camera mode
+let camMode: CamMode = CamMode.NORTH_UP;
 
 const level = defaultLevel();
 let boat: BoatState = makeBoat(level);
@@ -185,6 +189,18 @@ if (isTouchDevice()) {
     btn.addEventListener("pointerleave", release);
     // Guard against context menu / long-press selection on the buttons.
     btn.addEventListener("contextmenu", (e) => e.preventDefault());
+  });
+}
+
+// Add view toggle handler
+if (viewToggleBtn) {
+  viewToggleBtn.addEventListener("click", () => {
+    camMode = camMode === CamMode.NORTH_UP ? CamMode.BOAT_RELATIVE : CamMode.NORTH_UP;
+    cam.mode = camMode;
+    // Update button text to reflect current mode
+    viewToggleBtn.textContent = camMode === CamMode.NORTH_UP ? "North View" : "Boat View";
+    // Force a re-render to apply the new camera mode
+    renderer.draw(boat, level, cam);
   });
 }
 

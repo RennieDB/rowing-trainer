@@ -10,11 +10,20 @@
 import { CAMERA } from "./config";
 import type { BoatState } from "./types";
 
+/**
+ * Camera mode determines how the world is rendered relative to the boat
+ */
+export enum CamMode {
+  NORTH_UP = "north",
+  BOAT_RELATIVE = "boat",
+}
+
 export class Camera {
   /** Camera centre in world space (m). */
   cx: number;
   cy: number;
   ppm = CAMERA.pixelsPerMetre;
+  mode: CamMode = CamMode.NORTH_UP;
 
   constructor(startX: number, startY: number) {
     this.cx = startX;
