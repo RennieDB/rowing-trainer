@@ -91,17 +91,16 @@ export class Renderer {
     const startY = Math.floor(top / step) * step;
     ctx.beginPath();
     for (let x = startX; x <= right; x += step) {
-      const [sx, sy0] = cam.worldToScreen(x, top, vw, vh, boatTheta);
-      const [, sy1] = cam.worldToScreen(x, bottom, vw, vh, boatTheta);
-      ctx.moveTo(sx, sy0);
-      ctx.lineTo(sx, sy1);
+      const [sx0, sy0] = cam.worldToScreen(x, top, vw, vh, boatTheta);
+      const [sx1, sy1] = cam.worldToScreen(x, bottom, vw, vh, boatTheta);
+      ctx.moveTo(sx0, sy0);
+      ctx.lineTo(sx1, sy1);
     }
     for (let y = startY; y <= bottom; y += step) {
-      const [, sy] = cam.worldToScreen(left, y, vw, vh, boatTheta);
-      const [sx0] = cam.worldToScreen(left, y, vw, vh, boatTheta);
-      const [sx1] = cam.worldToScreen(right, y, vw, vh, boatTheta);
-      ctx.moveTo(sx0, sy);
-      ctx.lineTo(sx1, sy);
+      const [sx0, sy0] = cam.worldToScreen(left, y, vw, vh, boatTheta);
+      const [sx1, sy1] = cam.worldToScreen(right, y, vw, vh, boatTheta);
+      ctx.moveTo(sx0, sy0);
+      ctx.lineTo(sx1, sy1);
     }
     ctx.stroke();
   }
