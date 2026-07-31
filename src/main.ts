@@ -67,6 +67,12 @@ function reset() {
   boat = makeBoat(level);
   cam.cx = level.start.x;
   cam.cy = level.start.y;
+  // Also reset camera mode to north-up on reset
+  cam.mode = CamMode.NORTH_UP;
+  if (viewToggleBtn) {
+    viewToggleBtn.textContent = "North View";
+  }
+  camMode = CamMode.NORTH_UP;
   scenario = initScenario(level);
   for (const o of lastInput.oars) {
     o.engaged = false;
@@ -91,6 +97,12 @@ function launch() {
   state = "playing";
   last = performance.now();
   acc = 0;
+  // Ensure camera is in north-up mode when launching
+  cam.mode = CamMode.NORTH_UP;
+  if (viewToggleBtn) {
+    viewToggleBtn.textContent = "North View";
+  }
+  camMode = CamMode.NORTH_UP;
 }
 
 /** Pause the sim (from playing only). */
@@ -199,6 +211,11 @@ if (viewToggleBtn) {
     cam.mode = camMode;
     // Update button text to reflect current mode
     viewToggleBtn.textContent = camMode === CamMode.NORTH_UP ? "North View" : "Boat View";
+    // When switching to boat-relative, immediately center camera on boat
+    if (camMode === CamMode.BOAT_RELATIVE) {
+      cam.cx = boat.x;
+      cam.cy = boat.y;
+    }
     // Force a re-render to apply the new camera mode
     renderer.draw(boat, level, cam, RENDER.debug, lastInput.oars, nextTarget());
   });
