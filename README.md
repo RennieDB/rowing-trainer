@@ -1,110 +1,96 @@
-# Rowing Manoeuvring Trainer (PoC)
+# Rowing Manoeuvring Trainer
 
-A browser-based trainer to help new rowers learn boat handling — a top-down
-coxless double (2x), modelled as a ~9.5 m rigid hull on open water, with
-realistic turn/yaw physics. Built with Vite + TypeScript, canvas rendering, no
-game engine.
+A top-down rowing simulation for learning 2x (double scull) handling. Builds real boat feel — the hull resists sideways skid, yaw decays fast when you stop rowing, and per-side oar control makes you learn to steer.
 
-**Live demo:** https://renniedb.github.io/rowing-trainer/
+## Controls
 
-## Run it locally
+**Per-side 3-state (default scheme):**
+
+| Side      | Row on | Hold | Back down |
+|-----------|--------|------|-----------|
+| Port      | Q      | A    | Z         |
+| Starboard | W      | S    | X         |
+
+- **Row on** — drives forward. Both sides = straight; one side = turn.
+- **Hold** — squares the blade in the water to check/brake and yaw the boat.
+- **Back down** — reverses.
+
+**Other keys:**
+- `P` / `Esc` — pause/resume
+- `R` — reset to start
+
+**Menu buttons (top-right of the simulation):**
+- **Toggle View** — switches between North View and Boat View
+- **Reset (R)** — boat back to start, gates cleared
+- **Menu** — back to the landing screen
+
+## Views
+
+### North View (default)
+World-fixed, north-up. The boat rotates on the map. The camera follows with a slight lead in the direction of travel.
+
+### Boat View
+Boat-fixed, world rotates around the boat. The boat's bow always points **down** on screen. Grid lines, gates, and debug vectors all rotate with the world to give a sense of motion.
+
+**On mobile/touch devices:** the on-screen left/right buttons automatically swap port/stbd sides in Boat View so screen-left controls starboard oars (starboard is now screen-left with bow-down orientation).
+
+## Features
+
+- Realistic 2x rigid-body physics (anisotropic drag, oar-offset torque)
+- Per-side 3-state oar control (row / hold / back-down)
+- Camera toggle — north-up ↔ boat-relative
+- Open-water scenario with sequential gates (1 → 2 → …)
+- Off-screen target indicator (chevron orbiting the boat)
+- On-screen touch controls (mobile/touch devices, auto-swap in boat view)
+- Debug overlay (velocity/heading vectors, toggled in config)
+- Deterministic fixed-timestep simulation (Δt = 1/60 s)
+
+## Tech
+
+- **Language:** TypeScript
+- **Build:** Vite
+- **Renderer:** HTML5 Canvas (2D)
+- **Physics:** Semi-implicit Euler, hull-local anisotropic drag
+
+## Project structure
+
+```
+rowing-game/
+├── index.html          # Landing/menu screen + canvas + touch controls
+├── src/
+│   ├── main.ts         # Game loop, HUD, input setup, view toggle
+│   ├── physics.ts      # Rigid-body boat physics
+│   ├── render.ts       # Canvas renderer (grid, shore, gates, boat, debug)
+│   ├── camera.ts       # Follow camera + view modes (north-up / boat-relative)
+│   ├── input.ts        # Keyboard + gamepad input → oar commands
+│   ├── config.ts       # All tunables (boat dimensions, drag, camera, render)
+│   ├── types.ts        # Shared type definitions
+│   └── levels.ts       # Level data (gates, start pose, bounds)
+├── vite.config.ts      # Vite configuration
+└── package.json
+```
+
+## Development
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173  (add -- --host to test from another device on your LAN)
-npm run build      # type-check + production build to dist/
-npm run preview    # serve the production build locally
+npm run dev        # Start Vite dev server
+npm run typecheck  # Type-check without emitting
+npm run build      # Type-check + production build
 ```
 
-Requires Node 20+.
-
-## Controls (current PoC — per-side)
-
-Each **side** drives both rowers' same-side oars together. The two sides are
-fully independent, so you can, for example, hold port while rowing starboard.
-
-| Action | Port (left) | Starboard (right) |
-| --- | --- | --- |
-| Row on (drive forward) | `Q` | `W` |
-| Hold (square blade — brake / "check") | `A` | `S` |
-| Back down (reverse) | `Z` | `X` |
-
-- Both sides together → goes straight. One side only → the boat turns (port
-  drives the bow to port, starboard to starboard).
-- `R` — reset the level (boat back to start, gates cleared).
-- `Esc` / `P` — pause (overlay with Resume / Restart / Menu).
-- `Enter` or **Launch trainer** — start from the landing screen.
-
-Top-right on-screen buttons (always available, work on touch too):
-**Reset (R)** · **Pause (P)** (toggles to Resume when paused) · **Menu**
-(return to the landing screen, resetting progress).
-
-A landing/menu screen explains the controls and start/stop before play.
-On a touchscreen, on-screen Row/Hold/Back buttons appear for each side
-(see below). Gamepad support is planned (left/right stick = port/starboard
-effort), not yet wired.
-
-To switch schemes, change `CONTROL.scheme` in `src/config.ts`:
-`"simple"` (legacy single-stick), `"sideBySide"` (current), or `"perOar"`
-(full independent 4-oar control — stubbed, the learning goal). Physics is
-identical regardless of scheme.
-
-## Touch controls (mobile / tablet)
-
-On a touch device (`pointer: coarse`), an on-screen pad appears at the bottom:
-**Port** on the left (Row / Hold / Back), **Starboard** on the right. These feed
-the same key set the keyboard uses (`Q A Z` / `W S X`), so the per-side physics
-mapping is untouched. The pad hides behind the landing/pause overlays and shows
-only during play. The top-right Reset / Pause / Menu buttons work on touch too.
-
-## How it works
-
-- `src/physics.ts` — rigid-body boat: each oar applies force offset from the
-  centreline, producing thrust **and** yaw torque. Anisotropic drag (very high
-  lateral, low longitudinal) makes it handle like a hull, not a puck. Angular
-  drag is applied as a torque divided by **inertia**, so yaw stops quickly when
-  you stop rowing.
-- `src/input.ts` — the only layer that knows about keys/gamepad. Emits an
-  `OarCommand[4]` consumed identically by physics, so the control scheme is
-  swappable.
-- `src/camera.ts` / `src/render.ts` — top-down follow camera (north-up, world
-  scroll), canvas draw with debug vectors.
-- `src/levels/` — scenarios are **data** (JSON). Add a file + register it; no
-  engine changes. See `src/scenario.ts` for gate/win logic.
-- `src/main.ts` — fixed-timestep loop (physics decoupled from render,
-  deterministic — enables later server-side replay validation).
-
-All "feel" constants live in `src/config.ts`.
-
-## Deploy (GitHub Pages)
-
-Deployment is automated: `.github/workflows/deploy.yml` builds and publishes to
-GitHub Pages on every push to `main` (using OpenID Connect — **no stored
-token**). Live at **https://renniedb.github.io/rowing-trainer/**.
-
-Manual alternative:
+The dev server binds to `localhost:5173` by default. For network access (e.g. testing from another machine):
 
 ```bash
-npm run build
-# serve dist/ from any static host (Netlify / Cloudflare Pages drag-and-drop, etc.)
+npm run dev -- --host
 ```
 
-`vite.config.ts` sets `base: "./"` so it works from a project sub-path.
+## Roadmap (not yet built)
 
-## License
-
-Copyright © 2026 David Rennie. **All rights reserved.** See
-[LICENSE](LICENSE). Permission to use, copy, modify, or distribute this
-software is granted only with the express written permission of the copyright
-holder.
-
-## Roadmap
-
-- **Per-oar control** — the actual learning goal: drive each rower's each oar
-  independently (`CONTROL.scheme = "perOar"` is stubbed).
-- River flow / current and wind / gusts.
-- Other boats / river traffic with collision.
-- Landing-stage docking scenarios (away-from / onto the bank).
-- Scoring + leaderboard with server-side replay validation.
-- More courses (busy river, slalom) — the level framework is already data-driven.
-- Camera toggle (boat-relative view); sound / haptics; mobile/touch controls.
+- Per-oar independent control (the actual learning goal — each rower's each oar)
+- River flow / current and wind / gusts
+- Other boats / river traffic with collision
+- Landing-stage docking scenarios
+- Scoring + leaderboard with server-side replay validation
+- More courses (busy river, slalom)
+- Sound / haptics

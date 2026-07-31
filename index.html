@@ -314,10 +314,12 @@
         <ul>
           <li>Realistic 2x hull physics — the hull resists sideways skid and stops yawing fast when you stop rowing (not "on ice").</li>
           <li>Per-side 3-state oar control (row / hold / back-down).</li>
+          <li><strong>Camera toggle</strong> — switch between north-up view (world fixed, boat rotates) and boat-relative view (boat fixed, world rotates). Bow points down in boat view.</li>
           <li>Top-down, north-up camera that follows the boat and scrolls.</li>
           <li>Open-water scenario with sequential gates (1 → 2 → …).</li>
           <li>Off-screen target indicator — a chevron orbiting the boat points at the next gate.</li>
           <li>Reset button + to-scale hull and oars.</li>
+          <li>On-screen touch buttons (mobile/touch devices) — automatically swap port/stbd sides in boat-relative view so screen-left controls starboard oars.</li>
           <li>Deterministic fixed-timestep simulation (matters later for fair scoring).</li>
         </ul>
 
@@ -329,7 +331,7 @@
           <li>Landing-stage docking scenarios (away from / onto the bank).</li>
           <li>Scoring + leaderboard with server-side replay validation.</li>
           <li>More courses (busy river, slalom) — the level framework is already data-driven.</li>
-          <li>Camera toggle (boat-relative view), sound / haptics, mobile touch controls.</li>
+          <li>Sound / haptics.</li>
         </ul>
       </div>
     </div>

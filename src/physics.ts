@@ -150,8 +150,15 @@ export function stepBoat(
     // local frame
     const lvx = rvx * cosT + rvy * sinT;
     const lvy = -rvx * sinT + rvy * cosT;
-    const dLocalX = -BOAT.holdDrag * lvx * Math.abs(lvx) - BOAT.holdDragLin * lvx;
-    const dLocalY = -BOAT.holdDrag * lvy * Math.abs(lvy) - BOAT.holdDragLin * lvy;
+    let dLocalX = -BOAT.holdDrag * lvx * Math.abs(lvx);
+    let dLocalY = -BOAT.holdDrag * lvy * Math.abs(lvy);
+    // Constant friction: fixed opposing force regardless of speed — kills the
+    // quadratic low-speed tail without affecting rowing-speed feel.
+    const vMag = Math.hypot(lvx, lvy);
+    if (vMag > 0.001) {
+      dLocalX += -BOAT.holdFriction * (lvx / vMag);
+      dLocalY += -BOAT.holdFriction * (lvy / vMag);
+    }
     const dwx = dLocalX * cosT - dLocalY * sinT;
     const dwy = dLocalX * sinT + dLocalY * cosT;
     fx += dwx;
