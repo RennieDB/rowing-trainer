@@ -32,8 +32,10 @@ export class Camera {
 
   /** Smoothly follow the boat each sim step. */
   follow(boat: BoatState) {
-    const leadX = Math.cos(boat.theta) * CAMERA.lead;
-    const leadY = Math.sin(boat.theta) * CAMERA.lead;
+    // In boat-relative mode, don't apply lead offset - just center on boat
+    // In north-up mode, apply lead in boat's heading direction
+    const leadX = this.mode === CamMode.BOAT_RELATIVE ? 0 : Math.cos(boat.theta) * CAMERA.lead;
+    const leadY = this.mode === CamMode.BOAT_RELATIVE ? 0 : Math.sin(boat.theta) * CAMERA.lead;
     const targetX = boat.x + leadX;
     const targetY = boat.y + leadY;
     this.cx += (targetX - this.cx) * CAMERA.follow;
