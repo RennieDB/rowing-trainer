@@ -45,10 +45,26 @@ export class Camera {
     wx: number,
     wy: number,
     viewW: number,
-    viewH: number
+    viewH: number,
+    boatTheta: number = 0
   ): [number, number] {
-    const sx = viewW / 2 + (wx - this.cx) * this.ppm;
-    const sy = viewH / 2 + (wy - this.cy) * this.ppm;
+    // First, translate world to camera-relative coordinates
+    let rx = wx - this.cx;
+    let ry = wy - this.cy;
+
+    // If in boat-relative mode, rotate by -boatTheta so the boat always points up
+    if (this.mode === CamMode.BOAT_RELATIVE) {
+      const cos = Math.cos(-boatTheta);
+      const sin = Math.sin(-boatTheta);
+      const rotatedX = rx * cos - ry * sin;
+      const rotatedY = rx * sin + ry * cos;
+      rx = rotatedX;
+      ry = rotatedY;
+    }
+
+    // Convert to screen pixels (center of canvas is origin)
+    const sx = viewW / 2 + rx * this.ppm;
+    const sy = viewH / 2 + ry * this.ppm;
     return [sx, sy];
   }
 }

@@ -200,7 +200,7 @@ if (viewToggleBtn) {
     // Update button text to reflect current mode
     viewToggleBtn.textContent = camMode === CamMode.NORTH_UP ? "North View" : "Boat View";
     // Force a re-render to apply the new camera mode
-    renderer.draw(boat, level, cam);
+    renderer.draw(boat, level, cam, RENDER.debug, lastInput.oars, nextTarget());
   });
 }
 

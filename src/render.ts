@@ -58,21 +58,21 @@ export class Renderer {
     // Apply camera transformation if in boat-relative mode
     if (cam.mode === CamMode.BOAT_RELATIVE) {
       ctx.save();
-      // The rotation is handled in the transformed world functions
+      ctx.rotate(-boat.theta);
     }
 
-    // Water background
+    // Draw water background (world coordinates unchanged)
     ctx.fillStyle = RENDER.water;
     ctx.fillRect(0, 0, vw, vh);
 
-    // Draw world grid and gates (they are transformed)
+    // Draw world elements (rotated if in boat-relative mode)
     this.drawGridTransformed(cam, vw, vh, cam.mode === CamMode.BOAT_RELATIVE, boat.theta);
     this.drawShoreTransformed(level, cam, vw, vh, cam.mode === CamMode.BOAT_RELATIVE, boat.theta);
     for (const g of level.gates) {
       this.drawGateTransformed(g, cam, vw, vh, cam.mode === CamMode.BOAT_RELATIVE, boat.theta);
     }
 
-    // Draw boat normally (rotation handled by canvas already)
+    // Draw boat normally (rotation handled by canvas)
     this.drawBoat(boat, cam, vw, vh, oars);
 
     // Debug vectors
@@ -100,8 +100,7 @@ export class Renderer {
     const startY = Math.floor(top / step) * step;
     ctx.beginPath();
     for (let x = startX; x <= right; x += step) {
-      const [sx] = this.transformedWorldToScreen(cam, x, top, vw, vh, transformed, boatTheta);
-      const [, sy0] = this.transformedWorldToScreen(cam, x, top, vw, vh, transformed, boatTheta);
+      const [sx, sy0] = this.transformedWorldToScreen(cam, x, top, vw, vh, transformed, boatTheta);
       const [, sy1] = this.transformedWorldToScreen(cam, x, bottom, vw, vh, transformed, boatTheta);
       ctx.moveTo(sx, sy0);
       ctx.lineTo(sx, sy1);
@@ -171,7 +170,6 @@ export class Renderer {
     let ry = wy - cam.cy;
 
     if (transformed && cam.mode === CamMode.BOAT_RELATIVE) {
-      // Apply rotation based on boat heading
       const cos = Math.cos(-boatTheta);
       const sin = Math.sin(-boatTheta);
       const rotatedX = rx * cos - ry * sin;
@@ -193,7 +191,7 @@ export class Renderer {
     oars: OarCommands
   ) {
     const ctx = this.ctx;
-    const [sx, sy] = cam.worldToScreen(boat.x, boat.y, vw, vh);
+    const [sx, sy] = cam.worldToScreen(boat.x, boat.y, vw, vh, boat.theta);
     const L = BOAT.length * cam.ppm;
     const W = BOAT.beam * cam.ppm;
 
@@ -206,6 +204,7 @@ export class Renderer {
     ctx.beginPath();
     ctx.ellipse(0, 0, L / 2, W / 2, 0, 0, Math.PI * 2);
     ctx.fill();
+
     // bow indicator: a clear arrowhead at +x (bow) so orientation is obvious.
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
@@ -214,6 +213,7 @@ export class Renderer {
     ctx.lineTo(L / 2 - 10, 7);
     ctx.closePath();
     ctx.fill();
+
     // orientation labels (rotate with the hull)
     ctx.fillStyle = "#1a1a1a";
     ctx.font = "bold 9px system-ui";
@@ -284,9 +284,9 @@ export class Renderer {
     target: { x: number; y: number }
   ) {
     const ctx = this.ctx;
-    const [bx, by] = cam.worldToScreen(boat.x, boat.y, vw, vh);
+    const [bx, by] = cam.worldToScreen(boat.x, boat.y, vw, vh, boat.theta);
     // direction (screen space) from boat to target
-    const [tx, ty] = cam.worldToScreen(target.x, target.y, vw, vh);
+    const [tx, ty] = cam.worldToScreen(target.x, target.y, vw, vh, boat.theta);
     const dx = tx - bx;
     const dy = ty - by;
     const dist = Math.hypot(dx, dy) || 1;
@@ -332,7 +332,7 @@ export class Renderer {
 
   private drawDebug(boat: BoatState, cam: Camera, vw: number, vh: number) {
     const ctx = this.ctx;
-    const [sx, sy] = cam.worldToScreen(boat.x, boat.y, vw, vh);
+    const [sx, sy] = cam.worldToScreen(boat.x, boat.y, vw, vh, boat.theta);
     // velocity vector
     ctx.strokeStyle = "#ff5555";
     ctx.lineWidth = 2;
