@@ -132,8 +132,11 @@ export class Renderer {
     const ctx = this.ctx;
     const [sx, sy] = cam.worldToScreen(g.x, g.y, vw, vh, boatTheta);
     const half = (g.width / 2) * cam.ppm;
-    const dx = Math.cos(g.angle + Math.PI / 2);
-    const dy = Math.sin(g.angle + Math.PI / 2);
+    // In boat-relative mode, rotate the gate angle so its orientation
+    // matches the rotated world view.
+    const screenAngle = cam.mode === CamMode.BOAT_RELATIVE ? g.angle - boatTheta : g.angle;
+    const dx = Math.cos(screenAngle + Math.PI / 2);
+    const dy = Math.sin(screenAngle + Math.PI / 2);
     ctx.strokeStyle = RENDER.gate;
     ctx.lineWidth = 4;
     ctx.beginPath();
@@ -290,19 +293,37 @@ export class Renderer {
   private drawDebug(boat: BoatState, cam: Camera, vw: number, vh: number) {
     const ctx = this.ctx;
     const [sx, sy] = cam.worldToScreen(boat.x, boat.y, vw, vh, boat.theta);
+
+    // Velocity vector (world coords — rotate for boat-relative view)
+    let velDx = boat.vx * cam.ppm * 2;
+    let velDy = boat.vy * cam.ppm * 2;
+    // Heading direction (world coords — rotate for boat-relative view)
+    let headDx = Math.cos(boat.theta) * 30;
+    let headDy = Math.sin(boat.theta) * 30;
+
+    if (cam.mode === CamMode.BOAT_RELATIVE) {
+      const cos = Math.cos(-boat.theta);
+      const sin = Math.sin(-boat.theta);
+      const rvx = velDx * cos - velDy * sin;
+      const rvy = velDx * sin + velDy * cos;
+      velDx = rvx;
+      velDy = rvy;
+      const rhx = headDx * cos - headDy * sin;
+      const rhy = headDx * sin + headDy * cos;
+      headDx = rhx;
+      headDy = rhy;
+    }
+
     ctx.strokeStyle = "#ff5555";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(sx, sy);
-    ctx.lineTo(sx + boat.vx * cam.ppm * 2, sy + boat.vy * cam.ppm * 2);
+    ctx.lineTo(sx + velDx, sy + velDy);
     ctx.stroke();
     ctx.strokeStyle = "#55ff55";
     ctx.beginPath();
     ctx.moveTo(sx, sy);
-    ctx.lineTo(
-      sx + Math.cos(boat.theta) * 30,
-      sy + Math.sin(boat.theta) * 30
-    );
+    ctx.lineTo(sx + headDx, sy + headDy);
     ctx.stroke();
   }
 }
