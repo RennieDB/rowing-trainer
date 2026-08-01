@@ -45,6 +45,11 @@ let camMode: CamMode = CamMode.NORTH_UP;
 const level = defaultLevel();
 let boat: BoatState = makeBoat(level);
 const cam = new Camera(level.start.x, level.start.y);
+// On coarse-pointer (touch) devices the screen is narrow; zoom out so more
+// of the playing surface is visible (boat ≈80% of its desktop size).
+if (matchMedia?.("(pointer: coarse)").matches || "ontouchstart" in window) {
+  cam.ppm *= 0.8;
+}
 const input = new InputManager();
 const renderer = new Renderer(canvas);
 let scenario: ScenarioState = initScenario(level);
