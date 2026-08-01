@@ -236,39 +236,40 @@
       .touch-side .label {
         display: none;
       }
-    </style>
 
-    @media (max-width: 640px) {
-      #hud {
-        top: 48px;
-        font-size: 10px;
-        padding: 4px 8px;
+      @media (max-width: 640px) {
+        #hud {
+          max-width: calc(100vw - 210px);
+          font-size: 10px;
+          padding: 4px 8px;
+        }
+        .topbtns {
+          gap: 4px;
+          flex-wrap: wrap;
+          max-width: 190px;
+          justify-content: flex-end;
+        }
+        button.topbtn {
+          font-size: 11px;
+          padding: 5px 8px;
+        }
       }
-      .topbtns {
-        gap: 4px;
-        flex-wrap: wrap;
-        max-width: 190px;
-        justify-content: flex-end;
+      @media (max-width: 400px) {
+        #hud {
+          max-width: calc(100vw - 130px);
+          font-size: 9px;
+          padding: 3px 6px;
+        }
+        .topbtns {
+          gap: 3px;
+          max-width: 120px;
+        }
+        button.topbtn {
+          font-size: 10px;
+          padding: 3px 5px;
+        }
       }
-      button.topbtn {
-        font-size: 11px;
-        padding: 5px 8px;
-      }
-    }
-    @media (max-width: 400px) {
-      #hud {
-        font-size: 9px;
-        padding: 3px 6px;
-      }
-      .topbtns {
-        gap: 3px;
-        max-width: 120px;
-      }
-      button.topbtn {
-        font-size: 10px;
-        padding: 3px 5px;
-      }
-    }
+    </style>
   </head>
   <body>
     <canvas id="game"></canvas>
